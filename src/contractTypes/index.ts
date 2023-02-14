@@ -12,7 +12,6 @@ const findMatches = (hashes: Set<string>): ContractSymbol[] => {
     const matches: ContractSymbol[] = []
     for (const contract of contracts) {
         let match = true
-
         for (const hash of contract.hashes)
             if (!hashes.has(hash)) {
                 match = false

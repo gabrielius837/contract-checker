@@ -1,9 +1,11 @@
+export const hasHexPrefix = (str: string): boolean => str.startsWith('0x')
+
 export const isHexString = (str: string, length?: number): boolean => {
     // if length is defined
     // ... check is length matches depending on '0x' prefix
     // ... check if str length is even
     const expected = length 
-        ? str.startsWith('0x')
+        ? hasHexPrefix(str)
             ? str.length === 2 + 2 * length
             : str.length === 2 * length
         : str.length % 2 === 0

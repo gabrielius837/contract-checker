@@ -1,3 +1,6 @@
+import findMatches from './contractTypes'
+import getSelectors from './parser'
+import getTokens from './parser/tokenizer'
 import { isHexString, getByteCode } from './utils'
 
 const main = async (): Promise<number> => {
@@ -21,16 +24,22 @@ const main = async (): Promise<number> => {
         return 1
     }
 
-    const { result } = resp
+    const { result: byteCode } = resp
 
-    if (result.length < 2) {
+    if (byteCode.length < 2) {
         console.log(`${arg} is not a contract`)
         return 0
     }
 
-    // parse byte code
-    // find matches
-    // print
+    const selectors = getSelectors(byteCode)
+    const matches = findMatches(selectors)
+
+    if (matches.length > 0) {
+        console.log(`contract: ${arg} match following type(s):`)
+        console.log(`\t${matches.join(', ')}`)
+    } else {
+        console.log(`contract: ${arg} does not match any know contracts`)
+    }
 
     return 0
 }
