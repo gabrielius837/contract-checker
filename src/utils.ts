@@ -1,10 +1,15 @@
+import { getSupportedFlows, isFlowValid } from "./flows"
+import { Flow } from "./flows/types"
+import getTokens from "./parser/tokenizer"
+import { Token } from "./parser/types"
+
 export const hasHexPrefix = (str: string): boolean => str.startsWith('0x')
 
-export const isHexString = (str: string, length?: number): boolean => {
+const isHexString = (str: string, length?: number): boolean => {
     // if length is defined
     // ... check is length matches depending on '0x' prefix
     // ... check if str length is even
-    const expected = length 
+    const expected = length
         ? hasHexPrefix(str)
             ? str.length === 2 + 2 * length
             : str.length === 2 * length
@@ -39,5 +44,60 @@ export const getByteCode = async (address: string): Promise<GetCodeResponse> => 
     })
 
     const obj = await response.json()
-    return obj    
+    return obj
+}
+
+export interface ProgramCtx {
+    address: string
+    flow: Flow
+    tokens: Token[]
+}
+
+export const getProgramCtx = async (): Promise<ProgramCtx | undefined> => {
+    const [, , address, flow] = process.argv
+
+    if (!address) {
+        console.error('address was not provided')
+        return undefined
+    }
+
+    if (!flow) {
+        console.error('flow was not provided')
+        return undefined
+    }
+
+    if (!isHexString(address, 20)) {
+        console.error(`${address} is not a valid address`)
+        return undefined
+    }
+
+    const validFlow = isFlowValid(flow)
+    if (!validFlow) {
+        console.error(`'${flow}' is not a valid flow`)
+        console.error(`supported flows are the following: ${getSupportedFlows().join(', ')}`)
+        return undefined
+    }
+
+    const resp = await getByteCode(address)
+
+    if (!resp || !resp.result || !isHexString(resp.result)) {
+        console.error('failed to retrieve valid byte code')
+        console.error(resp)
+        return undefined
+    }
+
+    const { result: byteCode } = resp
+
+    if (byteCode.length < 2) {
+        console.log(`${address} is not a contract`)
+        return undefined
+    }
+
+    const tokens = getTokens(byteCode)
+
+    return {
+        address,
+        flow: validFlow,
+        tokens
+    }
 }

@@ -74,6 +74,7 @@ const getOffset = (opCode: OpCode | null): Offset => {
     }
 }
 
+// assuming that valid bytecode is passed
 const getTokens = (byteCode: string): Token[] => {
     const tokens: Token[] = []
 
